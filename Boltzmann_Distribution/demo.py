@@ -1,14 +1,8 @@
 import cv2
-import numpy as np
+import numpy as np, scipy as sp
 from matplotlib import pyplot as plt
 import random
 import sklearn
-
-# default settings
-
-NUM_PERSON = 1000
-ITER = 30
-MONEY = 4
 
 class person():
     def __init__ (self, idx, money):
@@ -21,16 +15,20 @@ class exchange():
         self.table = []            # maybe is not nessasary
         self.pairs = []
         self.alive = []
+        self.money = 0
+        self.num_person = 0
     
-    def initialization (self):
-        for i in range(NUM_PERSON):
-            self.table.append(person(i, MONEY))
-        self.pairs = list(range(0, NUM_PERSON))
-        self.alive = list(range(0, NUM_PERSON))
+    def initialization (self, money, num_person):
+        self.money = money
+        self.num_person = num_person
+
+        for i in range(self.num_person):
+            self.table.append(person(i, self.money))
+        self.pairs = list(range(0, self.num_person))
+        self.alive = list(range(0, self.num_person))
 
     def pairing (self):
         random.shuffle(self.pairs)
-        #print(self.pairs)
 
     def doexchange (self):
         for idx, p1 in enumerate(self.pairs):
@@ -50,48 +48,35 @@ class exchange():
     
     def printtable(self):
         for t in self.table:
-            print("ID:", t.id, "MONEY:", t.pocket)
-    
-    def go(self):
-        for i in range(ITER):
+            print("ID:", t.id, "money:", t.pocket)
+
+    def showboard(self):        
+        price_table = [0] * self.num_person
+        price = list(range(0, self.num_person))
+        for i in range(self.num_person):
+            print(self.table[i].id, self.table[i].pocket)
+            price_table[self.table[i].pocket] += 1
+
+        new_price_table = [price_table[i] for i in range(len(price_table)) if (price_table[i] != 0)]  
+        new_price = [price[i] for i in range(len(price_table)) if (price_table[i] != 0)] 
+
+        x = np.arange(0, new_price[-1], 0.1)
+        y = np.exp(-x / self.money) / 4
+
+        plt.plot(x,y, color = "red")
+        plt.scatter(new_price, list(np.array(new_price_table)/self.num_person))
+        plt.show()
+
+    def play(self, times):
+        for i in range(times):
             self.pairing()
             self.doexchange()
 #            self.printtable()
     
 
-game = exchange()
-game.initialization()
-game.go()
 
-### evaluation ###
-
-SUM = 0
-SUM_LIST = []
-PRICE = list(range(0, NUM_PERSON))
-PRICE_TABLE = [0] * NUM_PERSON
-
-print("=="*5, "result", "=="*5)
-for i in range(NUM_PERSON):
-    print (game.table[i].id, game.table[i].pocket)
-    SUM += game.table[i].pocket
-    SUM_LIST.append(game.table[i].pocket)
-    
-    PRICE_TABLE[game.table[i].pocket] += 1 
-
-DELETE = []
-NEW_PRICE_TABLE = []
-NEW_PRICE = []
-
-for i, p in enumerate(PRICE_TABLE):
-    if p == 0:
-        DELETE.append(i)
-
-for p in range(len(PRICE_TABLE)):
-    if p not in DELETE:
-        NEW_PRICE_TABLE.append(PRICE_TABLE[p])
-        NEW_PRICE.append(PRICE[p])
-        
-
-
-plt.scatter(NEW_PRICE, NEW_PRICE_TABLE)
-plt.show()
+if __name__ == "__main__" :
+    game = exchange()
+    game.initialization(money = 4, num_person = 1000)  # 1000 person with 4 dollars each.
+    game.play(times = 100)                             # exchange 100 times.
+    game.showboard()
