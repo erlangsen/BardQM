@@ -61,7 +61,7 @@ class exchange():
         new_price = [price[i] for i in range(len(price_table)) if (price_table[i] != 0)] 
 
         x = np.arange(0, new_price[-1], 0.1)
-        y = np.exp(-x / self.money) / 4
+        y = np.exp(-x / self.money) / self.money
 
         plt.plot(x,y, color = "red")
         plt.scatter(new_price, list(np.array(new_price_table)/self.num_person))
